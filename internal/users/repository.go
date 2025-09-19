@@ -23,7 +23,7 @@ func NewSQLiteRepository(db *sql.DB) Repository { // Constructor para crear un n
 }
 
 func (r *sqliteRepository) CreateUser(ctx context.Context, user *Usuario) (int64, error) {
-	result, err := r.db.ExecContext(ctx, "INSERT INTO users (first_name, last_name, email, password, usm_pesos) VALUES (?, ?, ?, ?, ?)",
+	result, err := r.db.ExecContext(ctx, "INSERT INTO Usuario (first_name, last_name, email, password, usm_pesos) VALUES (?, ?, ?, ?, ?)",
 		user.FirstName, user.LastName, user.Email, user.Password, user.USMPesos)
 	if err != nil {
 		return 0, err
@@ -32,7 +32,7 @@ func (r *sqliteRepository) CreateUser(ctx context.Context, user *Usuario) (int64
 }
 
 func (r *sqliteRepository) GetUserByEmailAndPassword(ctx context.Context, email, password string) (*Usuario, error) {
-	row := r.db.QueryRowContext(ctx, "SELECT id, first_name, last_name, email, password, usm_pesos FROM users WHERE email = ? AND password = ?", email, password)
+	row := r.db.QueryRowContext(ctx, "SELECT id, first_name, last_name, email, password, usm_pesos FROM Usuario WHERE email = ? AND password = ?", email, password)
 	user := &Usuario{}
 	err := row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Password, &user.USMPesos)
 	if err != nil {
@@ -45,7 +45,7 @@ func (r *sqliteRepository) GetUserByEmailAndPassword(ctx context.Context, email,
 }
 
 func (r *sqliteRepository) GetUserByEmail(ctx context.Context, email string) (*Usuario, error) {
-	row := r.db.QueryRowContext(ctx, "SELECT id, first_name, last_name, email, password, usm_pesos FROM users WHERE email = ?", email)
+	row := r.db.QueryRowContext(ctx, "SELECT id, first_name, last_name, email, password, usm_pesos FROM Usuario WHERE email = ?", email)
 	user := &Usuario{}
 	err := row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Password, &user.USMPesos)
 	if err != nil {
@@ -58,7 +58,7 @@ func (r *sqliteRepository) GetUserByEmail(ctx context.Context, email string) (*U
 }
 
 func (r *sqliteRepository) GetUserByID(ctx context.Context, id int64) (*Usuario, error) {
-	row := r.db.QueryRowContext(ctx, "SELECT id, first_name, last_name, email, password, usm_pesos FROM users WHERE id = ?", id)
+	row := r.db.QueryRowContext(ctx, "SELECT id, first_name, last_name, email, password, usm_pesos FROM Usuario WHERE id = ?", id)
 	user := &Usuario{}
 	err := row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Password, &user.USMPesos)
 	if err != nil {
@@ -71,12 +71,12 @@ func (r *sqliteRepository) GetUserByID(ctx context.Context, id int64) (*Usuario,
 }
 
 func (r *sqliteRepository) UpdateUserUSMPesos(ctx context.Context, userID int64, amount int64) error {
-	_, err := r.db.ExecContext(ctx, "UPDATE users SET usm_pesos = usm_pesos + ? WHERE id = ?", amount, userID)
+	_, err := r.db.ExecContext(ctx, "UPDATE Usuario SET usm_pesos = usm_pesos + ? WHERE id = ?", amount, userID)
 	return err
 }
 
 func (r *sqliteRepository) ListUsers(ctx context.Context) ([]*Usuario, error) {
-	rows, err := r.db.QueryContext(ctx, "SELECT id, first_name, last_name, email, password, usm_pesos FROM users")
+	rows, err := r.db.QueryContext(ctx, "SELECT id, first_name, last_name, email, password, usm_pesos FROM Usuario")
 	if err != nil {
 		return nil, err
 	}

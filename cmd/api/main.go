@@ -4,6 +4,7 @@ import (
 	"database/sql" // Importa el paquete para trabajar con bases de datos SQL
 	"uzm-server/internal/users" // Importa el paquete local 'users' que contiene la lógica relacionada con usuarios
 	"uzm-server/internal/db" // Importa el paquete local 'db' que contiene la lógica para migrar la base de datos
+	"uzm-server/internal/books" // Importa el paquete local 'books' que contiene la lógica relacionada con libros
 	"github.com/gin-gonic/gin" // Importa el framework web Gin para crear servidores HTTP
 	_ "modernc.org/sqlite"     // Importa el driver SQLite3 (el guion bajo indica importación solo para efectos secundarios)
 
@@ -26,10 +27,16 @@ func main() { // Función principal, punto de entrada del programa
 	userService := users.NewService(userRepo)  // Crea un servicio de usuarios utilizando el repositorio
 	userHandler := users.NewHandler(userService) // Crea un manejador de usuarios utilizando el servicio
 
+	// Books
+	bookRepo := books.NewSQLiteRepository(dbconn)
+	bookService := books.NewService(bookRepo)
+	bookHandler := books.NewHandler(bookService)
+
 	// Inicializa el router Gin
 	router := gin.Default() // Crea un router con las configuraciones por defecto
 	router.Group("/api/v1")
 	userHandler.RegisterRoutes(router) // Registra las rutas del manejador de usuarios bajo el grupo /api/v1
+	bookHandler.RegisterRoutes(router) // Registra las rutas del manejador de libros bajo el grupo /api/v1
 
 	router.GET("/health", func(c *gin.Context) { c.JSON(200, gin.H{"status":"ok"}) })
 
