@@ -84,11 +84,7 @@ VALUES (?, ?, ?, ?, ?, ?)`,
     )
     if err != nil { return 0, err }
 
-    sqlRes, ok := res.(sql.Result)
-    if !ok {
-        return 0, errors.New("failed to assert result to sql.Result")
-    }
-    bookID, err := sqlRes.LastInsertId()
+    bookID, err := res.LastInsertId()
     if err != nil { return 0, err }
 
     _, err = tx.ExecContext(ctx, `
