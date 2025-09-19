@@ -22,7 +22,7 @@ type bookResponse struct {
 
 func toBookResponse(book *BookWithInventory) *bookResponse {
 	return &bookResponse{
-		Id:         book.ID,
+		Id:         book.Id,
 		BookName:   book.BookName,
 		BookCategory: book.BookCategory,
 		TransactionType: book.TransactionType,
