@@ -21,24 +21,24 @@ type BookWithInventory struct {
     AvailableQuantity int64
 }
 
-type CreateBookInput struct { // Estructura para la creación de un libro
-	BookName        string
-	BookCategory    string
-	TransactionType string
-	Price           int64
-	Status          bool
-	PopularityScore int64
-	Stock           int64
+type CreateBookInput struct {
+    BookName        string `json:"book_name" binding:"required"`
+    BookCategory    string `json:"book_category" binding:"required"`
+    TransactionType string `json:"transaction_type" binding:"required"` // "venta" | "arriendo"
+    Price           int64  `json:"price" binding:"required"`
+    Status          bool   `json:"status"`              // si decides mantenerlo en DB
+    PopularityScore int64  `json:"popularity_score"`    // opcional
+    Stock           int64  `json:"stock"`               // inicial inventario
 }
 
-type UpdateBookInput struct { // Estructura para la actualización de un libro
-	BookName        *string
-	BookCategory    *string
-	TransactionType  *string
-	Price            *int64
-	Status           *bool
-	PopularityScore  *int64
-	Stock            *int64
+type UpdateBookInput struct {
+    BookName        *string `json:"book_name"`
+    BookCategory    *string `json:"book_category"`
+    TransactionType *string `json:"transaction_type"` // "venta" | "arriendo"
+    Price           *int64  `json:"price"`
+    Status          *bool   `json:"status"`
+    PopularityScore *int64  `json:"popularity_score"`
+    Stock           *int64  `json:"stock"`
 }
 
 type Service interface { // Interfaz del servicio de libros

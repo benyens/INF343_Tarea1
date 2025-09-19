@@ -7,8 +7,7 @@ import (
 
 type Repository interface {
 	CreateUser(ctx context.Context, user *Usuario) (int64, error) // Crea un nuevo usuario y devuelve su ID
-	GetUserByEmailAndPassword(ctx context.Context, email, password string) (*Usuario, error ) // Obtiene un usuario por su correo electrónico y contraseña
-	GetUserByEmail(ctx context.Context, email string) (*Usuario, error) // Obtiene un usuario por su correo electrónico
+	LoginUser(ctx context.Context, email, password string) (*Usuario, error ) // Obtiene un usuario por su correo electrónico y contraseña
 	GetUserByID(ctx context.Context, id int64) (*Usuario, error) // Obtiene un usuario por su ID
 	UpdateUserUSMPesos(ctx context.Context, userID int64, amount int64) error // Actualiza la cantidad de USM Pesos de un usuario
 	ListUsers(ctx context.Context) ([]*Usuario, error) // Lista todos los usuarios
@@ -31,7 +30,7 @@ func (r *sqliteRepository) CreateUser(ctx context.Context, user *Usuario) (int64
 	return result.LastInsertId()
 }
 
-func (r *sqliteRepository) GetUserByEmailAndPassword(ctx context.Context, email, password string) (*Usuario, error) {
+func (r *sqliteRepository) LoginUser(ctx context.Context, email, password string) (*Usuario, error) {
 	row := r.db.QueryRowContext(ctx, "SELECT id, first_name, last_name, email, password, usm_pesos FROM Usuario WHERE email = ? AND password = ?", email, password)
 	user := &Usuario{}
 	err := row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Password, &user.USMPesos)

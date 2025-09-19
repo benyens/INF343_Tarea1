@@ -3,7 +3,9 @@ package books
 import (
 	"net/http"
 	"strconv"
-
+	"log"
+	"io"
+	"bytes"
 	"github.com/gin-gonic/gin"
 )
 
@@ -53,41 +55,55 @@ func (h *Handler) RegisterRoutes(r *gin.RouterGroup) {
 }
 
 func (h *Handler) createBook(c *gin.Context) {
-	var input CreateBookInput
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
-		return
-	}
-	bookID, err := h.service.CreateBook(c.Request.Context(), input)
+    // Diagnóstico: asegúrate del content-type
+    ct := c.GetHeader("Content-Type")
+    log.Println("Content-Type:", ct)
+
+    // Si quieres loguear el body sin romper el bind, hay que reponerlo:
+    b, _ := io.ReadAll(c.Request.Body)
+    log.Println("RAW BODY:", string(b))
+    c.Request.Body = io.NopCloser(bytes.NewBuffer(b))
+
+    var req CreateBookInput
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "JSON inválido: " + err.Error()})
+        return
+    }
+    log.Printf("REQ (after bind): %#v", req)
+
+	id, err := h.service.CreateBook(c.Request.Context(), req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	book, err := h.service.GetBookByID(c.Request.Context(), bookID, nil)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusCreated, toBookResponse(book))
+	bwi, _ := h.service.GetBookByID(c.Request.Context(), id, nil)
+	c.JSON(http.StatusCreated, toBookResponse(bwi))
 }
+
 
 func (h *Handler) ListBooks(c *gin.Context) {
 	statusParam := c.Query("status")
-	var status *bool
+	var onlyAvailable *bool
 	if statusParam != "" {
-		parsedStatus, err := strconv.ParseBool(statusParam)
+		parsed, err := strconv.ParseBool(statusParam)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid status parameter"})
 			return
 		}
-		status = &parsedStatus
+		onlyAvailable = &parsed
 	}
-	books, err := h.service.ListBook(c.Request.Context(), status)
+
+	books, err := h.service.ListBook(c.Request.Context(), onlyAvailable)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, books)
+
+	out := make([]*bookResponse, 0, len(books))
+	for _, bwi := range books {
+		out = append(out, toBookResponse(bwi))
+	}
+	c.JSON(http.StatusOK, gin.H{"books": out})
 }
 
 func (h *Handler) getBookByID(c *gin.Context) {
