@@ -23,9 +23,9 @@ type bookResponse struct {
 func toBookResponse(book *BookWithInventory) *bookResponse {
 	return &bookResponse{
 		Id:         book.Id,
-		BookName:   book.BookName,
-		BookCategory: book.BookCategory,
-		TransactionType: book.TransactionType,
+		BookName:   book.BookName, // Use the correct field name from BookWithInventory
+		BookCategory: book.Category, // Replace with the correct field name from BookWithInventory
+		TransactionType: book.TransactionType, // Replace with the correct field name from BookWithInventory
 		Price:      book.Price,
 		Status:     book.Status,
 		PopularityScore: book.PopularityScore,
