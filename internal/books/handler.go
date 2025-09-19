@@ -20,22 +20,21 @@ type bookResponse struct {
     } `json:"inventory"`
 }
 
-func toBookResponse(book *BookWithInventory) *bookResponse {
-	return &bookResponse{
-		Id:         book.Id,
-		BookName:   book.BookName, // Use the correct field name from BookWithInventory
-		BookCategory: book.Category, // Replace with the correct field name from BookWithInventory
-		TransactionType: book.TransactionType, // Replace with the correct field name from BookWithInventory
-		Price:      book.Price,
-		Status:     book.Status,
-		PopularityScore: book.PopularityScore,
-		Inventory: struct {
-			AvailableQuantity int64 `json:"available_quantity"`
-		}{
-			AvailableQuantity: book.AvailableQuantity,
-		},
-	}
+func toBookResponse(bwi *BookWithInventory) *bookResponse {
+    b := bwi.Book
 
+    // Si prefieres status booleano desde DB, usa: status := b.Status
+    resp := &bookResponse{
+        Id:              b.ID,
+        BookName:        b.BookName,
+        BookCategory:    b.BookCategory,
+        TransactionType: b.TransactionType,
+        Price:           b.Price,
+        Status:          b.Status,
+        PopularityScore: b.PopularityScore,
+    }
+    resp.Inventory.AvailableQuantity = bwi.AvailableQuantity
+    return resp
 }
 
 type Handler struct {
