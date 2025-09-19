@@ -1,4 +1,7 @@
-# UZM Server – Proyecto Distribuidos
+# UZM Server – Proyecto Sistema Distribuidos
+Benjamín Ferrada Larach | 202273061-7
+Erick Jakín Ávila |
+Renato Martínez Pierola | 
 
 Este servidor implementa la API para gestionar **Usuarios, Libros, Inventario, Ventas y Préstamos**.  
 Está desarrollado en **Go + Gin + SQLite** siguiendo arquitectura limpia (service, repository, handler).
@@ -10,13 +13,19 @@ Está desarrollado en **Go + Gin + SQLite** siguiendo arquitectura limpia (servi
 Compila y corre el API:
 
 ```bash
-go build -o bin/api ./cmd/api
-./bin/api
+go build -o bin/api.exe ./cmd/api
+./bin/api.exe
 ```
 O correr directamente el API: 
 
 ```bash
 go run ./cmd/api
+```
+
+Compilar y correr el cliente:
+```bash
+go build -o bin/client.exe ./client
+./bin/client.exe
 ```
 
 Deberías ver en consola:
@@ -40,22 +49,22 @@ Respuesta:
 
 ### Catálogo de libros (por defecto solo disponibles)
 ```bash
-curl http://localhost:8080/api/v1/books
+curl http://localhost:8080/api/books
 ```
 
 ### Catálogo incluyendo agotados
 ```bash
-curl "http://localhost:8080/api/v1/books?available=0"
+curl "http://localhost:8080/api/books?available=0"
 ```
 
 ### Obtener libro por ID
 ```bash
-curl http://localhost:8080/api/v1/books/1
+curl http://localhost:8080/api/books/1
 ```
 
 ### Crear libro
 ```bash
-curl -X POST http://localhost:8080/api/v1/books \
+curl -X POST http://localhost:8080/api/books \
  -H "Content-Type: application/json" \
  -d '{
    "book_name": "El principito",
@@ -83,14 +92,14 @@ Respuesta esperada:
 
 ### Actualizar libro (PATCH)
 ```bash
-curl -X PATCH http://localhost:8080/api/v1/books/1 \
+curl -X PATCH http://localhost:8080/api/books/1 \
  -H "Content-Type: application/json" \
  -d '{"price":12000,"stock":0}'
 ```
 
 Después, listar catálogo:
 ```bash
-curl http://localhost:8080/api/v1/books
+curl http://localhost:8080/api/books
 ```
 → El libro con stock 0 ya no aparece.
 
@@ -100,7 +109,7 @@ curl http://localhost:8080/api/v1/books
 
 - Transaction type inválido:
 ```bash
-curl -X POST http://localhost:8080/api/v1/books \
+curl -X POST http://localhost:8080/api/books \
  -H "Content-Type: application/json" \
  -d '{"book_name":"X","book_category":"Y","transaction_type":"foo","price":1,"stock":1}'
 ```
@@ -108,7 +117,7 @@ Respuesta: **400 Bad Request**.
 
 - Precio negativo:
 ```bash
-curl -X POST http://localhost:8080/api/v1/books \
+curl -X POST http://localhost:8080/api/books \
  -H "Content-Type: application/json" \
  -d '{"book_name":"X","book_category":"Y","transaction_type":"venta","price":-1,"stock":1}'
 ```
@@ -171,18 +180,18 @@ sqlite3 uzm.db ".read seed.sql"
 
 3. Crear libro:
    ```bash
-   curl -X POST http://localhost:8080/api/v1/books -d '{"book_name":"Prueba","book_category":"Test","transaction_type":"venta","price":5000,"stock":2}' -H "Content-Type: application/json"
+   curl -X POST http://localhost:8080/api/books -d '{"book_name":"Prueba","book_category":"Test","transaction_type":"venta","price":5000,"stock":2}' -H "Content-Type: application/json"
    ```
 
 4. Listar catálogo:
    ```bash
-   curl http://localhost:8080/api/v1/books
+   curl http://localhost:8080/api/books
    ```
 
 5. Actualizar stock a 0:
    ```bash
-   curl -X PATCH http://localhost:8080/api/v1/books/1 -d '{"stock":0}' -H "Content-Type: application/json"
-   curl http://localhost:8080/api/v1/books   # el libro ya no aparece
+   curl -X PATCH http://localhost:8080/api/books/1 -d '{"stock":0}' -H "Content-Type: application/json"
+   curl http://localhost:8080/api/books   # el libro ya no aparece
    ```
 
 ---
@@ -192,4 +201,4 @@ sqlite3 uzm.db ".read seed.sql"
 - Usa **Go 1.25.1** o superior.  
 - La base de datos es **SQLite** (`uzm.db` por defecto).  
 - El esquema se migra automáticamente al iniciar (`MustMigrate`).  
-- Todos los endpoints están bajo el prefijo `/api/v1`.
+- Todos los endpoints están bajo el prefijo `/api`.
