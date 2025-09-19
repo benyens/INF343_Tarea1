@@ -1,14 +1,14 @@
 # UZM Server – Proyecto Sistema Distribuidos
-Benjamín Ferrada Larach | 202273061-7
-Erick Jakín Ávila |
-Renato Martínez Pierola | 
+Benjamín Ferrada Larach | 202273061-7.
+Erick Jakín Ávila |.
+Renato Martínez Pierola | .
 
 Este servidor implementa la API para gestionar **Usuarios, Libros, Inventario, Ventas y Préstamos**.  
 Está desarrollado en **Go + Gin + SQLite** siguiendo arquitectura limpia (service, repository, handler).
 
 ---
 
-## Ejecutar el servidor
+## Ejecutar el servidor en local
 
 Compila y corre el API:
 
@@ -27,7 +27,11 @@ Compilar y correr el cliente:
 go build -o bin/client.exe ./client
 ./bin/client.exe
 ```
+O correr directamente el cliente: 
 
+```bash
+go run ./client
+```
 Deberías ver en consola:
 
 ```
@@ -35,6 +39,32 @@ Servidor escuchando en http://localhost:8080
 ```
 
 ---
+
+## Ejecutar el servidor en VM (Cliente)
+# Requisitos
+- Solo se necesita el ejecutable del cliente (client.exe)
+
+# Conectar al VM (Servidor) y ejecutar Menú
+```bash
+UZM_BASE_URL="{URL}" ./uzm-client
+```
+
+## Ejecutar el servidor en VM (Servidor)
+# Requisitos
+- Solo se necesita el ejecutable del servidor y el esquema de la base de datos (api.exe y schema.sql)
+
+# Permitir que el servidor escuche y abrir el puerto en firewall
+- 1. Asegurarse que el servidor este escuchando en todas las interfaces
+```bash
+router.Run(":8080") // equivale a 0.0.0.0:8080
+```
+- 2. Abrir el puerto en firewall (linux)
+```bash
+sudo ufw allow 8080/tcp
+```
+```bash
+UZM_BASE_URL="{URL}" ./uzm-client
+```
 
 ## Endpoints principales
 
