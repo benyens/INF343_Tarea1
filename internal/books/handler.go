@@ -45,7 +45,7 @@ func NewHandler(service Service) *Handler {
 	return &Handler{service: service}
 }
 
-func (h *Handler) RegisterRoutes(r *gin.Engine) {
+func (h *Handler) RegisterRoutes(r *gin.RouterGroup) {
 	r.GET("/books", h.ListBooks)
 	r.GET("/books/:id", h.getBookByID)
 	r.POST("/books", h.createBook)

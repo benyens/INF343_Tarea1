@@ -15,7 +15,7 @@ func NewHandler(service Service) *Handler { // Constructor para crear un nuevo m
 	return &Handler{service: service} // Retorna una instancia del manejador con el servicio inyectado
 }	
 
-func (h *Handler) RegisterRoutes(router *gin.Engine) { // Método para registrar las rutas del manejador
+func (h *Handler) RegisterRoutes(router *gin.RouterGroup) { // Método para registrar las rutas del manejador
 		router.GET("/users", h.ListUsers) // Ruta para listar todos los usuarios
 		router.GET("/users/:id", h.getUserByID) // Ruta para obtener un usuario por su ID
 		router.POST("/register", h.registerUser) // Ruta para registrar un nuevo usuario

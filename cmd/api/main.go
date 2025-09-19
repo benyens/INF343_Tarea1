@@ -34,9 +34,9 @@ func main() { // Función principal, punto de entrada del programa
 
 	// Inicializa el router Gin
 	router := gin.Default() // Crea un router con las configuraciones por defecto
-	router.Group("/api/v1")
-	userHandler.RegisterRoutes(router) // Registra las rutas del manejador de usuarios bajo el grupo /api/v1
-	bookHandler.RegisterRoutes(router) // Registra las rutas del manejador de libros bajo el grupo /api/v1
+	api := router.Group("/api/v1")
+	userHandler.RegisterRoutes(api) // Registra las rutas del manejador de usuarios bajo el grupo /api/v1
+	bookHandler.RegisterRoutes(api) // Registra las rutas del manejador de libros bajo el grupo /api/v1
 
 	router.GET("/health", func(c *gin.Context) { c.JSON(200, gin.H{"status":"ok"}) })
 
