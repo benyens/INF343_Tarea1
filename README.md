@@ -13,6 +13,11 @@ Compila y corre el API:
 go build -o bin/api ./cmd/api
 ./bin/api
 ```
+O correr directamente el API: 
+
+```bash
+go run ./cmd/api
+```
 
 Deberías ver en consola:
 
