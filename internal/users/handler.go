@@ -19,6 +19,7 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
 	rg.GET("/users/:id", h.getUserByID)
 	rg.POST("/users", h.createUser)
 	rg.PATCH("/users/:id/usm_pesos", h.updateUserUSMPesos) // más explícito
+	rg.GET("/users/email/:email", h.getUserByEmail)   // obtener usuario por email
 }
 
 // ===== DTOs de request/response =====
@@ -120,4 +121,22 @@ func (h *Handler) updateUserUSMPesos(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, toUserResponse(u))
 
+}
+func (h *Handler) getUserByEmail(c *gin.Context) {
+	email := c.Param("email")
+	if email == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email is required"})
+		return
+	}
+
+	u, err := h.service.GetUserByEmail(c.Request.Context(), email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if u == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+	c.JSON(http.StatusOK, toUserResponse(u))
 }

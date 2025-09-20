@@ -11,6 +11,7 @@ type Repository interface {
 	GetUserByID(ctx context.Context, id int64) (*Usuario, error) // Obtiene un usuario por su ID
 	UpdateUserUSMPesos(ctx context.Context, userID int64, amount int64) error // Actualiza la cantidad de USM Pesos de un usuario
 	ListUsers(ctx context.Context) ([]*Usuario, error) // Lista todos los usuarios
+	GetUserByEmail(ctx context.Context, email string) (*Usuario, error) // Obtiene un usuario por su email
 }
 
 type sqliteRepository struct { // Implementación del repositorio utilizando SQLite

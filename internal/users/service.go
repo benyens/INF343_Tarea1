@@ -14,11 +14,10 @@ type Usuario struct {
 type Service interface {
 	RegisterUser(ctx context.Context, user *Usuario) (int64, error) // Registra un nuevo usuario y devuelve su ID
 	LoginUser(ctx context.Context, email, password string) (*Usuario, error) // Autentica a un usuario y devuelve su información
-
 	GetUserByID(ctx context.Context, id int64) (*Usuario, error) // Obtiene un usuario por su ID
-
 	UpdateUserUSMPesos(ctx context.Context, userID int64, amount int64) error // Actualiza la cantidad de USM Pesos de un usuario
 	ListUsers(ctx context.Context) ([]*Usuario, error) // Lista todos los usuarios
+	GetUserByEmail(ctx context.Context, email string) (*Usuario, error) // Obtiene un usuario por su email
 }
 
 type service struct {
@@ -48,7 +47,9 @@ func (s *service) UpdateUserUSMPesos(ctx context.Context, userID int64, amount i
 func (s *service) ListUsers(ctx context.Context) ([]*Usuario, error) {
 	return s.repo.ListUsers(ctx)
 }
-
+func (s *service) GetUserByEmail(ctx context.Context, email string) (*Usuario, error) {
+	return s.repo.GetUserByEmail(ctx, email)
+}
 
 
 

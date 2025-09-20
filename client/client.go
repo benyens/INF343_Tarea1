@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"sort"
 )
 
 // ===== Config =====
@@ -67,6 +68,7 @@ type User struct {
 	LastName  string `json:"last_name"`
 	Email     string `json:"email"`
 	USMPesos  int64  `json:"usm_pesos"`
+	Password  string `json:"password,omitempty"`
 }
 
 type UsersList struct {
@@ -162,39 +164,52 @@ func pause() {
 	_, _ = in.ReadString('\n')
 }
 
-// ===== Menú 1: Registrarse / Entrar con ID =====
+// ===== Menú 1: Registrarse / Iniciar sesion =====
 
 func menuInicio() (user *User, ok bool) {
 	for {
 		fmt.Println("\n=== Menú ===")
 		fmt.Println("1) Registrarse")
-		fmt.Println("2) Entrar con ID")
+		fmt.Println("2) Iniciar sesion")
 		fmt.Println("3) Terminar ejecución")
+
 		switch prompt("> ") {
 		case "1":
 			u := crearUsuario()
 			if u != nil {
-				fmt.Printf("Usuario creado (#%d) – guarda tu ID para entrar.\n", u.ID)
+				fmt.Printf("Usuario creado, ahora puedes iniciar sesion.\n")
 			}
 		case "2":
-			id := mustAtoi64(prompt("ID de usuario: "))
-			if id <= 0 {
-				fmt.Println("ID inválido")
+			Correo := prompt("Correo: ")
+
+			if strings.TrimSpace(Correo) == "" {
+				fmt.Println("Correo inválido")
 				continue
 			}
+
 			var me User
-			if err := getJSON(fmt.Sprintf("/api/users/%d", id), &me); err != nil || me.ID == 0 {
+			if err := getJSON(fmt.Sprintf("/api/users/email/%s", Correo), &me); err != nil || me.ID == 0 {
 				fmt.Println("Usuario no encontrado:", err)
 				continue
 			}
+
+			passwordCorrect := me.Password
+			passwordTry := prompt("Password: ")
+			if passwordTry==passwordCorrect {
+				fmt.Println("Contraseña incorrecta")
+				continue
+			}
+
+			fmt.Printf("Bienvenido, %s %s!\n", me.FirstName, me.LastName)
 			return &me, true
 		case "3":
 			return nil, false
-		default:
-			fmt.Println("Opción inválida")
+			default:
+				fmt.Println("Opción inválida")
+			}
 		}
 	}
-}
+
 
 func crearUsuario() *User {
 	fn := prompt("Nombre: ")
@@ -226,34 +241,32 @@ func menuPrincipal(user *User) {
 		fmt.Println("\n=== Menú Principal ===")
 		fmt.Println("1) Ver catálogo (solo disponibles)")
 		fmt.Println("2) Ver catálogo (incluye agotados)")
-		fmt.Println("3) Crear libro")
-		fmt.Println("4) Actualizar libro (precio/stock)")
-		fmt.Println("5) Listar usuarios")
-		fmt.Println("6) Ver mi cuenta")
-		fmt.Println("7) Abonar USM Pesos a mi cuenta")
-		fmt.Println("8) Salir")
+		fmt.Println("3) Ver carro de compras")
+		fmt.Println("4) Mis prestamos")
+		fmt.Println("5) Ver mi cuenta")
+		fmt.Println("6) Ver libros populares")
+		fmt.Println("7) Salir")
 		switch prompt("> ") {
 		case "1":
 			listarLibros(false)
 		case "2":
 			listarLibros(true)
 		case "3":
-			crearLibro()
+			verCarro(user)
 		case "4":
-			actualizarLibro()
+			misPrestamos(user)
 		case "5":
-			listarUsuarios()
-		case "6":
 			verMiCuenta(user)
+		case "6":
+			verPopulares()
 		case "7":
-			abonarMiCuenta(user)
-		case "8":
 			return
 		default:
 			fmt.Println("Opción inválida")
 		}
 	}
 }
+
 
 func listarLibros(includeAll bool) {
 	url := "/api/books"
@@ -270,7 +283,7 @@ func listarLibros(includeAll bool) {
 		return
 	}
 	fmt.Println("-----------------------------------------------------------------")
-	fmt.Printf("| %-7s | %-20s | %-10s | %-9s | %-5s | %-5s |\n", "ID", "Nombre", "Categoría", "Modalidad", "Valor", "Stock")
+	fmt.Printf("| %-7s | %-20s | %-10s | %-9s | %-5s | %-5s |\n", "ID", "Nombre", "Categoría", "Tipo", "Valor", "Stock")
 	fmt.Println("-----------------------------------------------------------------")
 	for _, b := range out.Books {
 		fmt.Printf("| %-7d | %-20s | %-10s | %-9s | %-5d | %-5d |\n",
@@ -280,77 +293,41 @@ func listarLibros(includeAll bool) {
 	pause()
 }
 
-func crearLibro() {
-	name := prompt("Nombre: ")
-	cat  := prompt("Categoría: ")
-	tt   := strings.ToLower(prompt("Transacción (venta/arriendo): "))
-	price:= mustAtoi64(prompt("Precio (entero): "))
-	stock:= mustAtoi64(prompt("Stock inicial: "))
-
-	req := CreateBookReq{
-		BookName: name, BookCategory: cat, TransactionType: tt,
-		Price: price, Status: true, Stock: stock,
-	}
-	var created Book
-	if err := postJSON("/api/books", req, &created); err != nil {
-		fmt.Println("Error:", err)
-	} else {
-		fmt.Printf("Libro creado (#%d)\n", created.ID)
-	}
+func verCarro(user *User) {
+	fmt.Println("(no implementado)")
 	pause()
 }
 
-func actualizarLibro() {
-	id    := mustAtoi64(prompt("ID del libro a actualizar: "))
-	priceV:= prompt("Nuevo precio (Enter para omitir): ")
-	stockV:= prompt("Nuevo stock (Enter para omitir): ")
-
-	var req UpdateBookReq
-	if strings.TrimSpace(priceV) != "" {
-		p := mustAtoi64(priceV)
-		req.Price = &p
-	}
-	if strings.TrimSpace(stockV) != "" {
-		s := mustAtoi64(stockV)
-		req.Stock = &s
-	}
-	if req.Price == nil && req.Stock == nil {
-		fmt.Println("No hay campos a actualizar.")
-		pause()
-		return
-	}
-	var updated Book
-	if err := patchJSON(fmt.Sprintf("/api/books/%d", id), req, &updated); err != nil {
-		fmt.Println("Error:", err)
-	} else {
-		fmt.Printf("Actualizado: #%d %s precio=%d stock=%d\n",
-			updated.ID, updated.BookName, updated.Price, updated.Inventory.AvailableQuantity)
-	}
+func misPrestamos(user *User) {
+	fmt.Println("(no implementado)")
 	pause()
 }
 
-func listarUsuarios() {
-	var out UsersList
-	if err := getJSON("/api/users", &out); err != nil {
-		fmt.Println("Error:", err)
-		pause()
-		return
-	}
-	if len(out.Users) == 0 {
-		fmt.Println("(sin usuarios)")
-		pause()
-		return
-	}
-	fmt.Println("---------------------------------------------------------------")
-	fmt.Printf("| %-7s | %-12s | %-12s | %-24s | %-6s |\n", "ID", "Nombre", "Apellido", "Email", "USM$")
-	fmt.Println("---------------------------------------------------------------")
-	for _, u := range out.Users {
-		fmt.Printf("| %-7d | %-12s | %-12s | %-24s | %-6d |\n",
-			u.ID, u.FirstName, u.LastName, u.Email, u.USMPesos)
-	}
-	fmt.Println("---------------------------------------------------------------")
-	pause()
+func verPopulares() {
+    var out BooksList
+    if err := getJSON("/api/books", &out); err != nil {
+        fmt.Println("Error:", err)
+        pause()
+        return
+    }
+
+    // Ordenar por PopularityScore descendente
+    sort.Slice(out.Books, func(i, j int) bool {
+        return out.Books[i].PopularityScore > out.Books[j].PopularityScore
+    })
+
+    fmt.Println("-----------------------------------------------------------------")
+    fmt.Printf("| %-7s | %-20s | %-10s | %-5s | %-5s |\n", "ID", "Nombre", "Categoría", "Valor", "Popularidad")
+    fmt.Println("-----------------------------------------------------------------")
+    for _, b := range out.Books {
+        fmt.Printf("| %-7d | %-20s | %-10s | %-5d | %-5d |\n",
+            b.ID, b.BookName, b.BookCategory, b.Price, b.PopularityScore)
+    }
+    fmt.Println("-----------------------------------------------------------------")
+    pause()
 }
+
+
 
 func verMiCuenta(user *User) {
 	var me User
@@ -359,19 +336,36 @@ func verMiCuenta(user *User) {
 		pause()
 		return
 	}
-	fmt.Println("-------------------------------------------------")
-	fmt.Printf("ID: %d\nNombre: %s %s\nEmail: %s\nUSM$: %d\n",
-		me.ID, me.FirstName, me.LastName, me.Email, me.USMPesos)
-	fmt.Println("-------------------------------------------------")
-	pause()
+	for {
+		fmt.Println("1. Consultar saldo")
+		fmt.Printf("2. Abonar usm pesos")
+		fmt.Printf("3. Ver historial de compras y arriendos")
+		fmt.Printf("4. Salir")
+		switch prompt("> ") {
+		case "1":
+			fmt.Printf("Saldo actual: %d USM Pesos\n", me.USMPesos)
+			pause()
+		case "2":
+			abonarMiCuenta(user)
+		case "3":
+			fmt.Println("(no implementado)")
+			pause()
+		case "4":
+			return
+		default:
+			fmt.Println("Opción inválida")
+
+	}
+}
 }
 
 func abonarMiCuenta(user *User) {
-	amt := mustAtoi64(prompt("Monto a abonar (+/-): "))
+	amt := mustAtoi64(prompt("Ingrese la cantidad de usm pesos a abonar (+/-): "))
 	if err := patchJSON(fmt.Sprintf("/api/users/%d/usm_pesos", user.ID), UpdatePesosReq{Amount: amt}, nil); err != nil {
 		fmt.Println("Error:", err)
 	} else {
-		fmt.Println("Saldo actualizado.")
+		user.USMPesos += amt
+		fmt.Printf("Nuevo saldo de %d usm pesos.\n", user.USMPesos)
 	}
 	pause()
 }
